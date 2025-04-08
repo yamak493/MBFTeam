@@ -1,0 +1,15 @@
+name: mbfteam
+version: '1.0-SNAPSHOT'
+main: net.enabify.mbfteam.Mbfteam
+api-version: '1.20'
+folia-supported: true
+
+commands:
+  mbfteam:
+    description: Team management commands
+    usage: /mbfteam <join|leave|tp>
+    permission: mbfteam.admin
+permissions:
+  mbfteam.admin:
+    description: Allows usage of the MBFTeam commands.
+    default: op
