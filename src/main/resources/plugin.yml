@@ -6,9 +6,8 @@ folia-supported: true
 
 commands:
   mbfteam:
-    description: Team management commands
-    usage: /mbfteam <join|leave|tp>
-    permission: mbfteam.admin
+    description: チーム管理コマンド
+    usage: /mbfteam <join|leave|tp|list|start|end>
 permissions:
   mbfteam.admin:
     description: Allows usage of the MBFTeam commands.

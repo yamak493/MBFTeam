@@ -63,21 +63,23 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        if (args.length < 1) {
-            sender.sendMessage(ChatColor.RED + "使い方: /mbfteam <join | leave | tp> [引数]");
+        // 引数がない場合は使い方を表示
+        if (args.length == 0) {
+            sender.sendMessage(ChatColor.RED + "使い方: /mbfteam <join|leave|tp|list|start|end> [引数]");
             return true;
         }
 
+        // サブコマンドを取得
         String subCommand = args[0].toLowerCase();
-
-        // チームメンバー一覧を表示
-        if (subCommand.equals("list")) {
-            handleListCommand(sender, args);
-            return true;
-        }
 
         // 管理者パーミッションのチェック
         if (!sender.hasPermission("mbfteam.admin")) {
+
+            if (subCommand.equals("list")) {
+                handleListCommand(sender, args);
+                return true;
+            }
+
             sender.sendMessage(ChatColor.RED + "イベント主催者のみが使用できるコマンドです.");
             return true;
         }
@@ -108,7 +110,7 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
                 break;
 
             default:
-                sender.sendMessage(ChatColor.RED + "使い方: /mbfteam <join | leave | tp> [引数]");
+                sender.sendMessage(ChatColor.RED + "使い方: /mbfteam <join|leave|tp|list|start|end> [引数]");
                 break;
         }
         return true;
