@@ -14,8 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
 import java.util.*;
 
@@ -27,7 +25,7 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
     private final Map<UUID, String> playerTeams = new HashMap<>();
 
     // 有効なチームカラー（全て小文字で扱う）
-    private final List<String> validTeams = Arrays.asList("red", "blue", "green", "yellow", "purple");
+    private final List<String> validTeams = Arrays.asList("red", "blue", "green", "yellow", "purple", "white");
 
     // Foliaのスケジューラ
     private AsyncScheduler asyncScheduler;
@@ -64,18 +62,26 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
     // /mbfteam コマンドの処理
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
+        if (args.length < 1) {
+            sender.sendMessage(ChatColor.RED + "使い方: /mbfteam <join | leave | tp> [引数]");
+            return true;
+        }
+
+        String subCommand = args[0].toLowerCase();
+
+        // チームメンバー一覧を表示
+        if (subCommand.equals("list")) {
+            handleListCommand(sender, args);
+            return true;
+        }
+
         // 管理者パーミッションのチェック
         if (!sender.hasPermission("mbfteam.admin")) {
             sender.sendMessage(ChatColor.RED + "イベント主催者のみが使用できるコマンドです.");
             return true;
         }
-        
-        if (args.length < 1) {
-            sender.sendMessage(ChatColor.YELLOW + "使い方: /mbfteam <join | leave | tp> [引数]");
-            return true;
-        }
 
-        String subCommand = args[0].toLowerCase();
         switch (subCommand) {
             case "join":
                 handleJoinCommand(sender, args);
@@ -97,8 +103,12 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
                 handleEndCommand(sender, args);
                 break;
 
+            case "list":
+                handleListCommand(sender, args);
+                break;
+
             default:
-                sender.sendMessage(ChatColor.YELLOW + "使い方: /mbfteam <join | leave | tp> [引数]");
+                sender.sendMessage(ChatColor.RED + "使い方: /mbfteam <join | leave | tp> [引数]");
                 break;
         }
         return true;
@@ -107,7 +117,7 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
         private void handleJoinCommand(CommandSender sender, String[] args) {
         // /mbfteam join <プレイヤー名> <チームカラー>
         if (args.length < 3) {
-            sender.sendMessage(ChatColor.YELLOW + "使い方: /mbfteam join <プレイヤー名> <チーム名>");
+            sender.sendMessage(ChatColor.RED + "使い方: /mbfteam join <プレイヤー名> <チーム名>");
             return;
         }
         
@@ -139,7 +149,7 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
             playerTeams.put(targetPlayer.getUniqueId(), teamColor);
         
             sender.sendMessage(ChatColor.GREEN + targetPlayer.getName() + "さんを、" + teamColor + "に配属しました.");
-            targetPlayer.sendMessage(ChatColor.GREEN + "あなたは、" + teamColor + "に配属されました.");
+            targetPlayer.sendMessage(ChatColor.LIGHT_PURPLE + "あなたは、" + teamColor + "に配属されました.");
         }, null); // 第3引数にnullを渡す
     }
 
@@ -149,7 +159,7 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
             for (UUID uuid : new HashSet<>(playerTeams.keySet())) {
                 Player p = Bukkit.getPlayer(uuid);
                 if (p != null) {
-                    p.sendMessage(ChatColor.YELLOW + "あなたはチームから退出しました.");
+                    p.sendMessage(ChatColor.LIGHT_PURPLE + "あなたはチームから退出しました.");
                 }
             }
             
@@ -165,7 +175,7 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
     private void handleTpCommand(CommandSender sender, String[] args) {
         // /mbfteam tp <チームカラー> : コマンド実行者の座標に指定チームのオンラインプレイヤーをテレポート
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.YELLOW + "使い方: /mbfteam tp <チーム名>");
+            sender.sendMessage(ChatColor.RED + "使い方: /mbfteam tp <チーム名>");
             return;
         }
         
@@ -198,7 +208,7 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
                     // プレイヤーごとのEntitySchedulerを使用してテレポート
                     member.getScheduler().run(this, innerTask -> {
                         member.teleportAsync(targetLocation).thenAccept(result -> {
-                            member.sendMessage(ChatColor.GREEN + "試合会場にテレポートしました！");
+                            member.sendMessage(ChatColor.LIGHT_PURPLE + "試合会場にテレポートしました！");
                         });
                     }, null); // 第3引数にnullを渡す
                     teleportedCount++;
@@ -227,8 +237,8 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
                         10, 70, 20
                     );
 
-                    player.sendMessage(ChatColor.GREEN + "ゲームが開始されました！\nあなたのチーム: " + team);
-                    player.sendMessage(ChatColor.YELLOW + "試合中は、色付き革チェストプレートを着たままにしてください。");
+                    player.sendMessage(ChatColor.LIGHT_PURPLE + "ゲームが開始されました！\nあなたのチーム: " + team);
+                    player.sendMessage(ChatColor.LIGHT_PURPLE + "試合中は、色付き革チェストプレートを着たままにしてください。");
 
                     // チームカラーに応じた色付き革チェストプレートを与える
                     org.bukkit.inventory.ItemStack chestplate = new org.bukkit.inventory.ItemStack(org.bukkit.Material.LEATHER_CHESTPLATE);
@@ -249,6 +259,9 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
                             break;
                         case "purple":
                             meta.setColor(org.bukkit.Color.PURPLE);
+                            break;
+                        case "white":
+                            meta.setColor(org.bukkit.Color.WHITE);
                             break;
                         default:
                             meta.setColor(org.bukkit.Color.WHITE);
@@ -274,7 +287,7 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
                     // ゲーム終了のタイトルを表示
                     player.sendTitle(
                         ChatColor.RED + "ゲーム終了！",
-                        ChatColor.YELLOW + "お疲れ様でした！",
+                        ChatColor.GREEN + "お疲れ様でした！",
                         10, 70, 20
                     );
 
@@ -284,6 +297,31 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
             }
 
             sender.sendMessage(ChatColor.GREEN + "ゲームを終了しました.全プレイヤーに通知し、装備を削除しました.");
+        });
+    }
+
+
+    private void handleListCommand(CommandSender sender, String[] args) {
+        // /mbfteam list : すべてのチームのメンバーをチャット欄に表示
+        Bukkit.getServer().getGlobalRegionScheduler().execute(this, () -> {
+            for (String team : validTeams) {
+                Set<UUID> members = teamMembers.get(team);
+                if (members == null || members.isEmpty()) {
+                    sender.sendMessage(ChatColor.GREEN + team + "チームにはメンバーがいません.");
+                } else {
+                    StringBuilder memberNames = new StringBuilder();
+                    for (UUID uuid : members) {
+                        Player player = Bukkit.getPlayer(uuid);
+                        if (player != null) {
+                            memberNames.append(player.getName()).append(", ");
+                        }
+                    }
+                    if (memberNames.length() > 0) {
+                        memberNames.setLength(memberNames.length() - 2); // 最後のカンマとスペースを削除
+                    }
+                    sender.sendMessage(ChatColor.GREEN + team + "チームのメンバー: " + memberNames);
+                }
+            }
         });
     }
 
@@ -304,7 +342,7 @@ public class Mbfteam extends JavaPlugin implements Listener, CommandExecutor {
             
             if (teamVictim.equals(teamAttacker)) {
                 event.setCancelled(true);
-                attacker.sendMessage(ChatColor.YELLOW + "チームメイトを攻撃してはいけません！");
+                attacker.sendMessage(ChatColor.RED + "チームメイトを攻撃してはいけません！");
             }
         }
     }
